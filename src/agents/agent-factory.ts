@@ -5,6 +5,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { config } from "../utils/config.js";
 import { executeSqlQueryTool } from "./tool-factory.js";
 import { executeSqlQueryToolPrompt } from "./prompt-factory.js";
+import { mcpTools } from "./mcp-tools.js";
 
 const model = new ChatGoogleGenerativeAI({
   model: config.GOOGLE_GEMINI_CHAT_MODEL,
@@ -24,4 +25,10 @@ export const sqlQueryAgent = createAgent({
   tools: [executeSqlQueryTool],
   contextSchema,
   systemPrompt: executeSqlQueryToolPrompt,
+});
+
+export const mcpServerAgent = createAgent({
+  model,
+  tools: mcpTools,
+  systemPrompt: "You are a helpful assistant",
 });

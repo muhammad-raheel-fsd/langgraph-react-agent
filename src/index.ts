@@ -1,4 +1,4 @@
-import { sqlQueryAgent } from "./agents/agent-factory.js";
+import { mcpServerAgent, sqlQueryAgent } from "./agents/agent-factory.js";
 import { drawGraph } from "./utils/drawGraph.js";
 import { database } from "./db/datasource.js";
 import { displayStream } from "./utils/displayStream.js";
@@ -20,25 +20,25 @@ await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
 
 // console.log("AGENT:", response);
 
-const humanMessage = new HumanMessage(
-  "Tell me about the most customer Frank please"
-);
+// const humanMessage = new HumanMessage(
+//   "Tell me about the most customer Frank please"
+// );
 
-const response = await sqlQueryAgent.stream(
-  {
-    // messages: humanMessage, better way to pass message, best type safety
-    messages: {
-      role: "human",
-      content: "Tell me about the most customer Frank Harris please",
-    }, // another way to pass message
-  },
-  {
-    streamMode: ["values", "custom"], // messages | values | custom
-    context: {
-      db: database,
-    },
-  }
-);
+// const response = await sqlQueryAgent.stream(
+//   {
+//     // messages: humanMessage, better way to pass message, best type safety
+//     messages: {
+//       role: "human",
+//       content: "Tell me about the most customer Frank Harris please",
+//     }, // another way to pass message
+//   },
+//   {
+//     streamMode: ["values", "custom"], // messages | values | custom
+//     context: {
+//       db: database,
+//     },
+//   }
+// );
 // console.log("RESPONSE:::::", response);
 // displayStream(response);
 
@@ -46,10 +46,21 @@ const response = await sqlQueryAgent.stream(
 //   console.log(`[${metadata.langgraph_node}]: ${message.content}`);
 // }
 
-for await (const [type, stateOrCustomEvent] of response as any) {
-  if (type === "values" && stateOrCustomEvent.messages?.length) {
-    displayMessage(stateOrCustomEvent.messages.at(-1));
-  } else if (type === "custom") {
-    displayMessage({ type, content: stateOrCustomEvent });
+// for await (const [type, stateOrCustomEvent] of response as any) {
+//   if (type === "values" && stateOrCustomEvent.messages?.length) {
+//     displayMessage(stateOrCustomEvent.messages.at(-1));
+//   } else if (type === "custom") {
+//     displayMessage({ type, content: stateOrCustomEvent });
+//   }
+// }
+
+const response = await mcpServerAgent.stream(
+  {
+    messages: new HumanMessage("What is current time in lahore pakistan"),
+  },
+  {
+    streamMode: "values",
   }
-}
+);
+
+await displayStream(response);
