@@ -3,6 +3,7 @@ import { drawGraph } from "./utils/drawGraph.js";
 import { database } from "./db/datasource.js";
 import { displayStream } from "./utils/displayStream.js";
 import { HumanMessage } from "langchain";
+import { displayMessage } from "./utils/displayMessage.js";
 
 await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
 
@@ -32,7 +33,7 @@ const response = await sqlQueryAgent.stream(
     }, // another way to pass message
   },
   {
-    streamMode: "messages", // messages | value | custom
+    streamMode: ["values", "custom"], // messages | values | custom
     context: {
       db: database,
     },
@@ -41,6 +42,14 @@ const response = await sqlQueryAgent.stream(
 // console.log("RESPONSE:::::", response);
 // displayStream(response);
 
-for await (const [message, metadata] of response as any) {
-  console.log(`[${metadata.langgraph_node}]: ${message.content}`);
+// for await (const [message, metadata] of response as any) {
+//   console.log(`[${metadata.langgraph_node}]: ${message.content}`);
+// }
+
+for await (const [type, stateOrCustomEvent] of response as any) {
+  if (type === "values" && stateOrCustomEvent.messages?.length) {
+    displayMessage(stateOrCustomEvent.messages.at(-1));
+  } else if (type === "custom") {
+    displayMessage({ type, content: stateOrCustomEvent });
+  }
 }

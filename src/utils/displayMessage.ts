@@ -1,6 +1,13 @@
 import { BaseMessage, AIMessage } from "@langchain/core/messages";
 
-export const displayMessage = (message: BaseMessage) => {
+interface CustomEvent {
+  type: string;
+  content: unknown;
+}
+
+type DisplayableMessage = BaseMessage | CustomEvent;
+
+export const displayMessage = (message: DisplayableMessage) => {
   const icons = {
     human: "👤",
     ai: "🤖",
@@ -31,7 +38,11 @@ export const displayMessage = (message: BaseMessage) => {
 
   // Content
   if (message.content) {
-    console.log(message.content);
+    if (typeof message.content === "string") {
+      console.log(message.content);
+    } else {
+      console.log(JSON.stringify(message.content, null, 2));
+    }
   } else if (
     message instanceof AIMessage &&
     message.tool_calls &&
