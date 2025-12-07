@@ -4,6 +4,7 @@ import { database } from "./db/datasource.js";
 import { displayStream } from "./utils/displayStream.js";
 import { HumanMessage } from "langchain";
 import { displayMessage } from "./utils/displayMessage.js";
+// import { groqModel } from "./llms/groqModel.js";
 
 await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
 
@@ -65,3 +66,15 @@ const response = await mcpServerAgent.stream(
 );
 
 await displayStream(response);
+
+// const response = await sqlQueryAgent.invoke(
+//   {
+//     messages: new HumanMessage("List the table with largest number of records"),
+//   },
+//   {
+//     context: {
+//       db: database,
+//     },
+//   }
+// );
+// console.log(response);

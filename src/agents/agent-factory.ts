@@ -7,15 +7,9 @@ import { executeSqlQueryTool } from "./tool-factory.js";
 import { executeSqlQueryToolPrompt } from "./prompt-factory.js";
 import { mcpTools } from "./mcp-tools.js";
 import { MemorySaver } from "@langchain/langgraph";
+import { groqModel } from "../llms/groqModel.js";
 
 const checkpointer = new MemorySaver();
-
-const model = new ChatGoogleGenerativeAI({
-  model: config.GOOGLE_GEMINI_CHAT_MODEL,
-  apiKey: config.GOOGLE_GEMINI_API_KEY,
-  temperature: 0.7,
-  streaming: true,
-});
 
 const contextSchema = zod.object({
   db: zod.any().refine((val) => val instanceof SqlDatabase, {
@@ -24,7 +18,7 @@ const contextSchema = zod.object({
 });
 
 export const sqlQueryAgent = createAgent({
-  model,
+  model: groqModel,
   tools: [executeSqlQueryTool],
   contextSchema,
   systemPrompt: executeSqlQueryToolPrompt,
@@ -32,7 +26,8 @@ export const sqlQueryAgent = createAgent({
 });
 
 export const mcpServerAgent = createAgent({
-  model,
+  model: groqModel,
   tools: mcpTools,
   systemPrompt: "You are a helpful assistant",
+  checkpointer,
 });
