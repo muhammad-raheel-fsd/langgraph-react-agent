@@ -8,18 +8,19 @@ import { displayMessage } from "./utils/displayMessage.js";
 
 await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
 
-// const response = await sqlQueryAgent.invoke(
-//   {
-//     messages: "Which table has the largest number of rows?",
-//   },
-//   {
-//     context: {
-//       db: database,
-//     },
-//   }
-// );
+const response = await sqlQueryAgent.invoke(
+  {
+    messages: "Which table has the largest number of rows?",
+  },
+  {
+    context: {
+      db: database,
+    },
+    configurable: { thread_id: "1" },
+  }
+);
 
-// console.log("AGENT:", response);
+console.log("AGENT:", response.messages.at(-1)?.content);
 
 // const humanMessage = new HumanMessage(
 //   "Tell me about the most customer Frank please"
@@ -55,17 +56,17 @@ await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
 //   }
 // }
 
-const response = await mcpServerAgent.stream(
-  {
-    messages: new HumanMessage("What is current time in lahore pakistan"),
-  },
-  {
-    streamMode: "values",
-    configurable: { thread_id: "1" },
-  }
-);
+// const response = await mcpServerAgent.stream(
+//   {
+//     messages: new HumanMessage("What is current time in lahore pakistan"),
+//   },
+//   {
+//     streamMode: "values",
+//     configurable: { thread_id: "1" },
+//   }
+// );
 
-await displayStream(response);
+// await displayStream(response);
 
 // const response = await sqlQueryAgent.invoke(
 //   {

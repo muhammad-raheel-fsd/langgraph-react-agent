@@ -11,6 +11,12 @@ import { groqModel } from "../llms/groqModel.js";
 
 const checkpointer = new MemorySaver();
 
+const responseFormat = zod.object({
+  userRequest: zod.string(),
+  queryExecuted: zod.string(),
+  content: zod.string(),
+});
+
 const contextSchema = zod.object({
   db: zod.any().refine((val) => val instanceof SqlDatabase, {
     message: "db must be an instance of SqlDatabase",
@@ -23,6 +29,7 @@ export const sqlQueryAgent = createAgent({
   contextSchema,
   systemPrompt: executeSqlQueryToolPrompt,
   checkpointer,
+  responseFormat,
 });
 
 export const mcpServerAgent = createAgent({
