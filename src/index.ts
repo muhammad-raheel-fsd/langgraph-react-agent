@@ -4,19 +4,20 @@ import { database } from "./db/datasource.js";
 import { HumanMessage } from "langchain";
 import { displayMessage } from "./utils/displayMessage.js";
 
-await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
+// await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
 
 // Stream with structured response
 const stream = await sqlQueryAgent.stream(
   {
-    messages: new HumanMessage("Which table has the largest number of rows?"),
+    messages: new HumanMessage("Who is Frank Harris? Can you get me his account details"),
   },
   {
     streamMode: ["values", "custom"],
     context: {
       db: database,
+      isPublic: true, // Test public access - should access Customer table
     },
-    configurable: { thread_id: "1" },
+    configurable: { thread_id: Date.now().toString() }, // Fresh thread each run
   }
 );
 

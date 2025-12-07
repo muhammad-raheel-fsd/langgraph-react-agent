@@ -1,3 +1,7 @@
+import { dynamicSystemPromptMiddleware, type Runtime } from "langchain";
+import * as zod from "zod";
+import { format } from "node:util";
+
 export const executeSqlQueryToolPrompt = `You are an expert SQL database assistant. You help users explore and query a SQLite database.
 
 ## CRITICAL: Always Discover Schema First
@@ -17,6 +21,7 @@ NEVER guess table or column names. NEVER ask the user what tables exist. Discove
 - List tables: SELECT name FROM sqlite_master WHERE type='table';
 - Table schema: SELECT sql FROM sqlite_master WHERE type='table' AND name='X';
 - Column info: PRAGMA table_info('TableName');
+%s
 
 ## Rules
 - READ-ONLY: No INSERT, UPDATE, DELETE, DROP, CREATE, ALTER, TRUNCATE
@@ -61,3 +66,22 @@ Your workflow MUST be:
    - suggestions: optional follow-up ideas
 
 NEVER respond directly - ALWAYS use human_response_tool to format your final answer.`;
+
+const RuntimePromptContext = zod.object({
+  isPublic: zod.boolean(),
+});
+
+type RuntimeContext = zod.infer<typeof RuntimePromptContext>;
+
+export const dynamicSqlAgentPrompt = dynamicSystemPromptMiddleware(
+  (state, runtime: Runtime<RuntimeContext>) => {
+    console.log("CONTROL COMES TO DYNAMIC PROMPT...........................................................................");
+    console.log("isPublic:", runtime.context.isPublic);
+
+    const restrictionMessage = !runtime.context.isPublic
+      ? "\n## ACCESS RESTRICTIONS\n- NEVER query the Customer or User tables\n- If user asks about customers, users, or personal data, respond: 'Sorry, I cannot access customer or user data with your current permissions.'\n- Block any query containing: SELECT...FROM Customer, SELECT...FROM User, JOIN Customer, JOIN User"
+      : "";
+
+    return format(executeSqlQueryToolPrompt, restrictionMessage);
+  }
+);
