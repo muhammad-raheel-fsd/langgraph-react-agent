@@ -6,6 +6,9 @@ import { config } from "../utils/config.js";
 import { executeSqlQueryTool } from "./tool-factory.js";
 import { executeSqlQueryToolPrompt } from "./prompt-factory.js";
 import { mcpTools } from "./mcp-tools.js";
+import { MemorySaver } from "@langchain/langgraph";
+
+const checkpointer = new MemorySaver();
 
 const model = new ChatGoogleGenerativeAI({
   model: config.GOOGLE_GEMINI_CHAT_MODEL,
@@ -25,6 +28,7 @@ export const sqlQueryAgent = createAgent({
   tools: [executeSqlQueryTool],
   contextSchema,
   systemPrompt: executeSqlQueryToolPrompt,
+  checkpointer,
 });
 
 export const mcpServerAgent = createAgent({

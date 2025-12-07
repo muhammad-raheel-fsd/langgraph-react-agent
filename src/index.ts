@@ -60,6 +60,7 @@ const response = await mcpServerAgent.stream(
   },
   {
     streamMode: "values",
+    configurable: { thread_id: "1" },
   }
 );
 
