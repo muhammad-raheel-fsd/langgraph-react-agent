@@ -1,18 +1,18 @@
 import { mcpServerAgent, sqlQueryAgent } from "./agents/agent-factory.js";
 import { drawGraph } from "./utils/drawGraph.js";
 import { database } from "./db/datasource.js";
-import { displayStream } from "./utils/displayStream.js";
 import { HumanMessage } from "langchain";
 import { displayMessage } from "./utils/displayMessage.js";
-// import { groqModel } from "./llms/groqModel.js";
 
 await drawGraph(sqlQueryAgent, "sql-query-agent-graph");
 
-const response = await sqlQueryAgent.invoke(
+// Stream with structured response
+const stream = await sqlQueryAgent.stream(
   {
-    messages: "Which table has the largest number of rows?",
+    messages: new HumanMessage("Which table has the largest number of rows?"),
   },
   {
+    streamMode: ["values", "custom"],
     context: {
       db: database,
     },
@@ -20,7 +20,36 @@ const response = await sqlQueryAgent.invoke(
   }
 );
 
-console.log("AGENT:", response.messages.at(-1)?.content);
+let finalResponse: any = null;
+
+for await (const [type, data] of stream as any) {
+  if (type === "values" && data.messages?.length) {
+    const lastMessage = data.messages.at(-1);
+    displayMessage(lastMessage);
+
+    // Check if this is the final structured response
+    if (lastMessage?.content && typeof lastMessage.content === "string") {
+      try {
+        const parsed = JSON.parse(lastMessage.content);
+        if (parsed.answer && parsed.toolCalls) {
+          finalResponse = parsed;
+        }
+      } catch {
+        // Not JSON, regular message
+      }
+    }
+  } else if (type === "custom") {
+    console.log("\n🔧 Tool Call:", JSON.stringify(data, null, 2));
+  }
+}
+
+// Pretty print the final structured response
+if (finalResponse) {
+  console.log("\n" + "=".repeat(60));
+  console.log("📊 STRUCTURED RESPONSE");
+  console.log("=".repeat(60));
+  console.log(JSON.stringify(finalResponse, null, 2));
+}
 
 // const humanMessage = new HumanMessage(
 //   "Tell me about the most customer Frank please"
