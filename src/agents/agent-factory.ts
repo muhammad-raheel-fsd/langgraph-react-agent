@@ -12,9 +12,18 @@ import { groqModel } from "../llms/groqModel.js";
 const checkpointer = new MemorySaver();
 
 const responseFormat = zod.object({
-  userRequest: zod.string(),
-  queryExecuted: zod.string(),
-  content: zod.string(),
+  userRequest: zod.string().describe("The original user question/request"),
+  reasoning: zod.string().describe("Your thought process and analysis"),
+  toolCalls: zod.array(
+    zod.object({
+      tool: zod.string().describe("Name of the tool called"),
+      query: zod.string().describe("The SQL query executed"),
+      purpose: zod.string().describe("Why this query was needed"),
+      result: zod.string().describe("Summary of what the query returned"),
+    })
+  ).describe("List of all tool calls made to answer the request"),
+  answer: zod.string().describe("The final answer to the user's question"),
+  tablesUsed: zod.array(zod.string()).describe("Database tables that were queried"),
 });
 
 const contextSchema = zod.object({
