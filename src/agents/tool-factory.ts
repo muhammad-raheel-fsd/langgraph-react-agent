@@ -57,3 +57,35 @@ export const executeSqlQueryTool = tool(
     }),
   }
 );
+
+// Human Response Tool - formats structured data into human-friendly response
+export const humanResponseTool = tool(
+  (input, runtime) => {
+    const rt = runtime as RuntimeWithWriter;
+
+    rt.writer?.({
+      tool: "human_response_tool",
+      action: "formatting_response"
+    });
+
+    // Return structured response that will be shown to user
+    return {
+      userQuery: input.userQuery,
+      summary: input.summary,
+      details: input.details,
+      suggestions: input.suggestions,
+    };
+  },
+  {
+    name: "human_response_tool",
+    description: `ALWAYS call this tool as your FINAL step to format your response for the user.
+    Takes the analysis results and creates a clear, human-friendly response.
+    You MUST call this tool before ending the conversation.`,
+    schema: zod.object({
+      userQuery: zod.string().describe("The original user question"),
+      summary: zod.string().describe("A brief 1-2 sentence answer to the user's question"),
+      details: zod.string().describe("Detailed explanation with relevant data points"),
+      suggestions: zod.array(zod.string()).optional().describe("Optional follow-up suggestions for the user"),
+    }),
+  }
+);

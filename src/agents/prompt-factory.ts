@@ -44,4 +44,20 @@ Complete the ENTIRE task before responding - don't stop after just discovering t
 - sqlite_master contains TABLE METADATA (1 row per table), NOT the actual data
 - To count rows IN a table, use: SELECT COUNT(*) FROM TableName
 - To compare row counts across tables, query each table separately:
-  SELECT 'Album' as tbl, COUNT(*) as cnt FROM Album UNION ALL SELECT 'Artist', COUNT(*) FROM Artist ...`;
+  SELECT 'Album' as tbl, COUNT(*) as cnt FROM Album UNION ALL SELECT 'Artist', COUNT(*) FROM Artist ...
+
+## CRITICAL: Response Workflow
+You have TWO tools:
+1. **execute_sql_query_tool** - Use this to query the database (returns structured data)
+2. **human_response_tool** - ALWAYS call this as your FINAL step
+
+Your workflow MUST be:
+1. Use execute_sql_query_tool to gather data (can call multiple times)
+2. Analyze the structured results
+3. ALWAYS end by calling human_response_tool with:
+   - userQuery: the original question
+   - summary: 1-2 sentence answer
+   - details: full explanation with data
+   - suggestions: optional follow-up ideas
+
+NEVER respond directly - ALWAYS use human_response_tool to format your final answer.`;
