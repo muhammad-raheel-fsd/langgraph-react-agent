@@ -11,21 +11,49 @@ interface RuntimeWithWriter {
   context: unknown;
 }
 
+// Structured response from the tool
+interface SqlToolResponse {
+  success: boolean;
+  query: string;
+  rowCount: number;
+  data: unknown[];
+  error?: string;
+}
+
 export const executeSqlQueryTool = tool(
-  (input, runtime) => {
+  async (input, runtime): Promise<SqlToolResponse> => {
     const rt = runtime as RuntimeWithWriter;
-    rt.writer?.({ tool: "execute_sql_query_tool", query: input.query });
-    // console.log("SQL tool execution -------------------->", input);
     const { query } = input;
     const context = rt.context as SqlContext;
-    return context.db.run(query);
+
+    rt.writer?.({ tool: "execute_sql_query_tool", query });
+
+    try {
+      const result = await context.db.run(query);
+      const data = JSON.parse(result);
+
+      return {
+        success: true,
+        query,
+        rowCount: Array.isArray(data) ? data.length : 1,
+        data: Array.isArray(data) ? data : [data],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        query,
+        rowCount: 0,
+        data: [],
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   },
   {
     name: "execute_sql_query_tool",
     description:
-      "Executes a SQL query against a database and returns the results.",
+      "Executes a SQL query against a database and returns structured results with success status, row count, and data.",
     schema: zod.object({
-      query: zod.string(),
+      query: zod.string().describe("The SQL query to execute"),
     }),
   }
 );
